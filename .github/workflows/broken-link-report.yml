@@ -1,0 +1,25 @@
+name: Daily Broken Link Report
+
+on:
+  schedule:
+    - cron: '0 2 * * *' # Tous les jours à 2h00 UTC = 4h00 à Paris
+  workflow_dispatch:
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run link checker
+        run: node index.js
