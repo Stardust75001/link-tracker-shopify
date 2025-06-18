@@ -1,0 +1,42 @@
+name: 🚀 Deploy + Sentry Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⏬ Checkout repo
+        uses: actions/checkout@v4
+
+      - name: 📝 Récupération du numéro de version automatique
+        id: version
+        run: |
+          VERSION="v$(date +'%Y.%m.%d').${{ github.run_number }}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: ✏️ Inject version in theme.liquid
+        run: |
+          sed -i '' "s|release: .*|release: \"${{ env.VERSION }}\"|g" sections/theme.liquid || true
+          sed -i '' "s|release: .*|release: \"${{ env.VERSION }}\"|g" layout/theme.liquid || true
+
+      - name: 📤 Commit & Push version bump
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add .
+          git commit -m "🔁 Auto version bump ${{ env.VERSION }}"
+          git push
+
+      - name: 🚨 Create Sentry Release
+        uses: getsentry/action-release@v1
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: thepetsociety
+          SENTRY_PROJECT: shopify-frontend
+        with:
+          environment: production
+          version: ${{ env.VERSION }}
