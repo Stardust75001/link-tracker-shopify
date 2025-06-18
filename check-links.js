@@ -50,10 +50,21 @@ const links = [
     text: JSON.stringify(report, null, 2)
   };
 
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      return console.error('❌ Erreur d’envoi mail ❗️', error);
+ transporter.sendMail({
+  from: `"Shopify Link Checker" <${process.env.SMTP_USER}>`,
+  to: process.env.MAIL_TO,
+  subject: `[Shopify] Rapport de liens cassés - ${new Date().toLocaleDateString()}`,
+  text: JSON.stringify(report, null, 2),
+  attachments: [
+    {
+      filename: 'broken-links-report.json',
+      path: './broken-links-report.json',
+      contentType: 'application/json'
     }
-    console.log('📧 Rapport envoyé :', info.response);
-  });
-})();
+  ]
+}, (error, info) => {
+  if (error) {
+    return console.error('❌ Erreur d’envoi mail :', error);
+  }
+  console.log('📨 Rapport envoyé ✔ :', info.response);
+});
