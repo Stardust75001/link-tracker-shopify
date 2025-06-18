@@ -2,7 +2,7 @@ name: Daily Broken Link Report
 
 on:
   schedule:
-    - cron: '0 2 * * *' # Tous les jours à 2h00 UTC = 4h00 à Paris
+    - cron: '0 22 * * *' # 00:00 Paris time (UTC+2)
   workflow_dispatch:
 
 jobs:
