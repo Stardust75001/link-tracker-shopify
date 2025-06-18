@@ -20,8 +20,9 @@ jobs:
 
       - name: ✏️ Inject version in theme.liquid
         run: |
-          sed -i '' "s|release: .*|release: \"${{ env.VERSION }}\"|g" sections/theme.liquid || true
-          sed -i '' "s|release: .*|release: \"${{ env.VERSION }}\"|g" layout/theme.liquid || true
+          sed -i 's|release: .*|release: "${{ env.VERSION }}"|g' sections/theme.liquid || true
+          sed -i 's|release: .*|release: "${{ env.VERSION }}"|g' layout/theme.liquid || true
+          sed -i 's|<meta name="sentry-release" content="shop-theme-v.*">|<meta name="sentry-release" content="shop-theme-${{ env.VERSION }}">|' layout/theme.liquid || true
 
       - name: 📤 Commit & Push version bump
         run: |
