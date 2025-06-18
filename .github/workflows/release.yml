@@ -23,6 +23,7 @@ jobs:
           sed -i 's|release: .*|release: "${{ env.VERSION }}"|g' sections/theme.liquid || true
           sed -i 's|release: .*|release: "${{ env.VERSION }}"|g' layout/theme.liquid || true
           sed -i 's|<meta name="sentry-release" content="shop-theme-v.*">|<meta name="sentry-release" content="shop-theme-${{ env.VERSION }}">|g' layout/theme.liquid || true
+          sed -i 's|Sentry.setTag("release_tag", "shop-theme-v.*");|Sentry.setTag("release_tag", "shop-theme-${{ env.VERSION }}");|g' layout/theme.liquid || true
 
       - name: 📤 Commit & Push version bump
         run: |
