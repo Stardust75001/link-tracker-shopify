@@ -30,3 +30,30 @@ const links = [
   fs.writeFileSync('broken-links-report.json', JSON.stringify(report, null, 2));
   console.log(`📝 Rapport généré (${broken.length} lien(s) cassé(s))`);
 })();
+const nodemailer = require('nodemailer');
+
+// Configuration SMTP à partir des variables d’environnement GitHub
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT),
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+  tls: { ciphers: 'SSLv3' }
+});
+
+const mailOptions = {
+  from: `"Shopify Link Checker" <${process.env.SMTP_USER}>`,
+  to: process.env.MAIL_TO,
+  subject: `[Shopify] Rapport de liens cassés – ${new Date().toLocaleDateString()}`,
+  text: JSON.stringify(report, null, 2),
+};
+
+transporter.sendMail(mailOptions, (error, info) => {
+  if (error) {
+    return console.error('❌ Erreur d’envoi mail :', error);
+  }
+  console.log('📧 Rapport envoyé :', info.response);
+});
