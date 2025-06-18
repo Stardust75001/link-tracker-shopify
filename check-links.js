@@ -1,5 +1,6 @@
 const fetch = require('node-fetch');
 const fs = require('fs');
+const nodemailer = require('nodemailer');
 
 const links = [
   'https://thepetsociety.paris/',
@@ -13,24 +14,24 @@ const links = [
   for (const url of links) {
     try {
       const res = await fetch(url, { method: 'HEAD' });
-      if (!res.ok) {
-        broken.push({ url, status: res.status });
-      }
+      if (!res.ok) broken.push({ url, status: res.status });
     } catch (e) {
       broken.push({ url, status: 'fetch error' });
     }
   }
 
-  const date = new Date().toISOString();
+  const date = new Date();
+  const dateString = date.toISOString().split('T')[0];
+  const localeDate = date.toLocaleDateString();
+  const filename = `broken-links-${dateString}.json`;
+
   const report = {
     generatedAt: date,
     brokenLinks: broken
   };
 
-  fs.writeFileSync('broken-links-report.json', JSON.stringify(report, null, 2));
+  fs.writeFileSync(filename, JSON.stringify(report, null, 2));
   console.log(`✅ Rapport généré (${broken.length} lien(s) cassé(s))`);
-
-  const nodemailer = require('nodemailer');
 
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -43,28 +44,22 @@ const links = [
     tls: { ciphers: 'SSLv3' }
   });
 
-  const mailOptions = {
+  transporter.sendMail({
     from: `"Shopify Link Checker" <${process.env.SMTP_USER}>`,
     to: process.env.MAIL_TO,
-    subject: `[Shopify] Rapport de liens cassés – ${new Date().toLocaleDateString()}`,
-    text: JSON.stringify(report, null, 2)
-  };
-
- transporter.sendMail({
-  from: `"Shopify Link Checker" <${process.env.SMTP_USER}>`,
-  to: process.env.MAIL_TO,
-  subject: `[Shopify] Rapport de liens cassés - ${new Date().toLocaleDateString()}`,
-  text: JSON.stringify(report, null, 2),
-  attachments: [
-    {
-      filename: 'broken-links-report.json',
-      path: './broken-links-report.json',
-      contentType: 'application/json'
+    subject: `[Shopify] Rapport de liens cassés – ${localeDate}`,
+    text: `Le rapport contient ${broken.length} lien(s) cassé(s).`,
+    attachments: [
+      {
+        filename,
+        path: `./${filename}`,
+        contentType: 'application/json'
+      }
+    ]
+  }, (error, info) => {
+    if (error) {
+      return console.error('❌ Erreur d’envoi mail :', error);
     }
-  ]
-}, (error, info) => {
-  if (error) {
-    return console.error('❌ Erreur d’envoi mail :', error);
-  }
-  console.log('📨 Rapport envoyé ✔ :', info.response);
-});
+    console.log('📨 Rapport envoyé ✔ :', info.response);
+  });
+})();
