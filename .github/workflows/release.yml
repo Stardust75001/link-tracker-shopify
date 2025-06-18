@@ -25,12 +25,14 @@ jobs:
           sed -i 's|<meta name="sentry-release" content="shop-theme-v.*">|<meta name="sentry-release" content="shop-theme-${{ env.VERSION }}">|g' layout/theme.liquid || true
 
       - name: 📤 Commit & Push version bump
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add .
           git diff --cached --quiet || git commit -m "🔁 Auto version bump ${{ env.VERSION }}"
-          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/Stardust75001/link-tracker-shopify.git
+          git push https://x-access-token:${GH_PAT}@github.com/Stardust75001/link-tracker-shopify.git
 
       - name: 🚨 Create Sentry Release
         uses: getsentry/action-release@v1
