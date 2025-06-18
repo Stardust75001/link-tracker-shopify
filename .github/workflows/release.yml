@@ -9,10 +9,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: ⏬ Checkout repo with PAT
+      - name: ⏬ Checkout repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GH_PAT }}  # Important pour autoriser le commit + push
+          token: ${{ secrets.GH_PAT }} # Utilise le PAT pour autoriser git push
 
       - name: 📝 Génération automatique de version
         id: version
@@ -32,14 +32,14 @@ jobs:
           git config --global user.email "actions@github.com"
           git add .
           git diff --cached --quiet || git commit -m "🔁 Auto version bump ${{ env.VERSION }}"
-          git push
+          git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git
 
       - name: 🚨 Create Sentry Release
         uses: getsentry/action-release@v1
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-          SENTRY_ORG: thepetsociety
-          SENTRY_PROJECT: shopify-frontend
+          SENTRY_ORG: falcon-trading-ep
+          SENTRY_PROJECT: other
         with:
           environment: production
           version: ${{ env.VERSION }}
